@@ -19,7 +19,7 @@ public class AccountDB {
 		
 	}
 	
-	public synchronized boolean searchAccount(String email, String password)
+	public synchronized void searchAccount(String email, String password)
 	{
 		Iterator i = list.iterator();
 		Account temp;
@@ -31,12 +31,11 @@ public class AccountDB {
 			//If finds email attempt and password attempt are found, return true 
 			if(temp.getEmail().equalsIgnoreCase(email) && temp.getPassword().equalsIgnoreCase(password))
 			{
-				return true; // If match found
+				System.out.println("True");; // Returns true if match is found
 			
 			}
-			
 		}
-		return false; // If no match found 
+		System.out.println("False");; // If no match found
 	}
 	 // Print all accounts in the list
     public synchronized void printAccounts() {

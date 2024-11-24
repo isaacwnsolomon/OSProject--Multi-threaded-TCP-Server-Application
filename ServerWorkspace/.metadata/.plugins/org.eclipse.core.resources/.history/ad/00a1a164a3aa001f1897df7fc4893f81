@@ -34,9 +34,11 @@ public class AccountDB {
 				return true; // If match found
 			
 			}
-			
+			else {
+				return false; // If no match found 
+			}
 		}
-		return false; // If no match found 
+		
 	}
 	 // Print all accounts in the list
     public synchronized void printAccounts() {

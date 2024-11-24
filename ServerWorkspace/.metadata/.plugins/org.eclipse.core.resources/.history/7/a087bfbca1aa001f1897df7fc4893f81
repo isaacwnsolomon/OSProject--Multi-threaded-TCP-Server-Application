@@ -12,17 +12,6 @@ public class Account {
 		role = r;
 	}
 	
-
-    // Getter for email
-    public String getEmail() {
-        return email;
-    }
-
-    // Getter for password
-    public String getPassword() {
-        return password;
-    }
-	
 	 // Override toString to format account details
     @Override
     public String toString() {

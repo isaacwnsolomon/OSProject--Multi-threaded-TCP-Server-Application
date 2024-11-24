@@ -67,8 +67,6 @@ public class ServerThread extends Thread {
                 	 passwordAttempt = (String) in.readObject();
                 	 
                 	 shared.printAccounts();
-                	 
-                	 shared.searchAccount(emailAttempt, passwordAttempt);
                 }
               
                 // Ask if the client wants to repeat the operation

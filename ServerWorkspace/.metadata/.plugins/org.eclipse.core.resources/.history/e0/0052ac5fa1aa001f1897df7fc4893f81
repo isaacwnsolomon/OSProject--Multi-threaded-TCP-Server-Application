@@ -1,4 +1,3 @@
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class AccountDB {
@@ -17,26 +16,6 @@ public class AccountDB {
 		
 		list.add(temp);
 		
-	}
-	
-	public synchronized boolean searchAccount(String email, String password)
-	{
-		Iterator i = list.iterator();
-		Account temp;
-		
-		while (i.hasNext())
-		{
-			temp = (Account)i.next();
-			
-			//If finds email attempt and password attempt are found, return true 
-			if(temp.getEmail().equalsIgnoreCase(email) && temp.getPassword().equalsIgnoreCase(password))
-			{
-				return true; // If match found
-			
-			}
-			
-		}
-		return false; // If no match found 
 	}
 	 // Print all accounts in the list
     public synchronized void printAccounts() {
