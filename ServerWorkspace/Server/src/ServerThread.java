@@ -10,10 +10,12 @@ public class ServerThread extends Thread {
     private ObjectInputStream in;           // Input stream for receiving data from the client
     private String message;                 // Variable to store messages from the client
     private String name, employeeID, email, password, deptName, role, passwordAttempt, emailAttempt; // Variables to store employee data
-
-    // Constructor that accepts a socket connection
-    public ServerThread(Socket s) {
+    private AccountDB shared; // Shared instance
+    
+    // Constructor that accepts a socket connection and AccountDB
+    public ServerThread(Socket s, AccountDB db) {
         myConnection = s;
+        shared = db;
     }
 
     // The main logic of the thread that handles client requests
@@ -52,6 +54,8 @@ public class ServerThread extends Thread {
                     
                     sendMessage("Please enter your role");
                     role = (String) in.readObject();
+                    
+                    shared.addAccount(name, employeeID, email, password, deptName, role);
                    
                 }
                 // Login if the client selected option 2
@@ -61,9 +65,12 @@ public class ServerThread extends Thread {
                 	 
                 	 sendMessage("Please enter your password");
                 	 passwordAttempt = (String) in.readObject();
+                	 
+                	 shared.printAccounts();
                 }
-             
+              
                 // Ask if the client wants to repeat the operation
+                
                 sendMessage("Enter 1 to repeat");
                 message = (String) in.readObject();
             } while (message.equalsIgnoreCase("1"));

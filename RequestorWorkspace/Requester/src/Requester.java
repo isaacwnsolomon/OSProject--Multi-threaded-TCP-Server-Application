@@ -70,8 +70,7 @@ public class Requester {
                     message = input.nextLine();
                     sendMessage(message);               // Send employee role
 
-                    message = (String) in.readObject();
-                    System.out.println(message);        // Receive and display result
+                   
                 }
                 // If user selected option 2 (Login)
                 else if (message.equalsIgnoreCase("2")) {
@@ -86,25 +85,14 @@ public class Requester {
                     sendMessage(message);               // Send password
 
                 }
-                // If user selected option 3 (Square Root)
-                else if (message.equalsIgnoreCase("3")) {
-                    message = (String) in.readObject();
-                    System.out.println(message);
-                    message = input.nextLine();
-                    sendMessage(message);               // Send the number to find square root of
 
-                    message = (String) in.readObject();
-                    System.out.println(message);        // Receive and display result
-                }
+                // Prompt if user wants to repeat the operation
+                message = (String) in.readObject();
+                System.out.println(message);
+                message = input.nextLine();
+                sendMessage(message);
 
-                // Prompt for repeat and validate input
-                do {
-                    sendMessage("Enter 1 to repeat, or any other key to exit.");
-                    message = (String) in.readObject();
-                } while (!message.equalsIgnoreCase("1") && 
-                         !message.equalsIgnoreCase("exit")); // Example: allow "exit" as a termination option.
-
-            } while (message.equalsIgnoreCase("1"));
+            } while (message.equalsIgnoreCase("1"));    // Loop if user wants to repeat operation
 
         } catch (UnknownHostException unknownHost) {
             System.err.println("You are trying to connect to an unknown host!");

@@ -1,0 +1,18 @@
+import java.util.LinkedList;
+
+public class AccountDB {
+	
+	private LinkedList<Account> list;
+	
+	public AccountDB()
+	{
+		list = new LinkedList<Account>();
+	}
+	
+	public synchronized void addAccount(String name, String employeeID, String email,String password, String deptID, String role)
+	{
+		Account temp = new Account(name,employeeID,email,password,deptID,role);
+		
+		list.add(temp);
+	}
+}
