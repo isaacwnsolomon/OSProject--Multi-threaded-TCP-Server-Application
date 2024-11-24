@@ -54,7 +54,7 @@ public class ServerThread extends Thread {
                     role = (String) in.readObject();
                    
                 }
-                // Login if the client selected option 2
+                // Process multiplication if the client selected option 2
                 else if (message.equalsIgnoreCase("2")) {
                 	 sendMessage("Please enter your email: ");
                 	 emailAttempt = (String) in.readObject();
@@ -64,9 +64,9 @@ public class ServerThread extends Thread {
                 }
              
                 // Ask if the client wants to repeat the operation
-                sendMessage("Enter 1 to repeat");
+                sendMessage("Enter 0 to repeat");
                 message = (String) in.readObject();
-            } while (message.equalsIgnoreCase("1"));
+            } while (message.equalsIgnoreCase("0"));
             
         } catch (IOException | ClassNotFoundException e) {
             // Handle exceptions during I/O or object read errors

@@ -33,7 +33,7 @@ public class ServerThread extends Thread {
                 } while (!message.equalsIgnoreCase("1") && 
                          !message.equalsIgnoreCase("2"));
                 
-                // Enter details if the client selected option 1
+                // Process addition if the client selected option 1
                 if (message.equalsIgnoreCase("1")) {
                     sendMessage("Please enter your name: ");
                     name = (String) in.readObject();
@@ -54,7 +54,7 @@ public class ServerThread extends Thread {
                     role = (String) in.readObject();
                    
                 }
-                // Login if the client selected option 2
+                // Process multiplication if the client selected option 2
                 else if (message.equalsIgnoreCase("2")) {
                 	 sendMessage("Please enter your email: ");
                 	 emailAttempt = (String) in.readObject();

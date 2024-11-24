@@ -73,18 +73,25 @@ public class Requester {
                     message = (String) in.readObject();
                     System.out.println(message);        // Receive and display result
                 }
-                // If user selected option 2 (Login)
+                // If user selected option 2 (Multiplication)
                 else if (message.equalsIgnoreCase("2")) {
                     message = (String) in.readObject();
                     System.out.println(message);
                     message = input.nextLine();
-                    sendMessage(message);               // Send email
+                    sendMessage(message);               // Send first number
 
                     message = (String) in.readObject();
                     System.out.println(message);
                     message = input.nextLine();
-                    sendMessage(message);               // Send password
+                    sendMessage(message);               // Send second number
 
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);               // Send third number
+
+                    message = (String) in.readObject();
+                    System.out.println(message);        // Receive and display result
                 }
                 // If user selected option 3 (Square Root)
                 else if (message.equalsIgnoreCase("3")) {
@@ -97,14 +104,13 @@ public class Requester {
                     System.out.println(message);        // Receive and display result
                 }
 
-                // Prompt for repeat and validate input
-                do {
-                    sendMessage("Enter 1 to repeat, or any other key to exit.");
-                    message = (String) in.readObject();
-                } while (!message.equalsIgnoreCase("1") && 
-                         !message.equalsIgnoreCase("exit")); // Example: allow "exit" as a termination option.
+                // Prompt if user wants to repeat the operation
+                message = (String) in.readObject();
+                System.out.println(message);
+                message = input.nextLine();
+                sendMessage(message);
 
-            } while (message.equalsIgnoreCase("1"));
+            } while (message.equalsIgnoreCase("1"));    // Loop if user wants to repeat operation
 
         } catch (UnknownHostException unknownHost) {
             System.err.println("You are trying to connect to an unknown host!");
