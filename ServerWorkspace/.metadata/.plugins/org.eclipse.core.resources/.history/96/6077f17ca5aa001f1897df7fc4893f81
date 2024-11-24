@@ -87,15 +87,14 @@ public class ServerThread extends Thread {
                 		 message = (String)in.readObject();
                 		 loginChoice= Integer.parseInt(message);
                 	 }
-                }
+                	
                 // Ask if the client wants to repeat the operation
                 
                 sendMessage("Enter 1 to repeat");
                 message = (String) in.readObject();
             } while (message.equalsIgnoreCase("1"));
             
-            }
-            catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             // Handle exceptions during I/O or object read errors
             e.printStackTrace();
         } finally {

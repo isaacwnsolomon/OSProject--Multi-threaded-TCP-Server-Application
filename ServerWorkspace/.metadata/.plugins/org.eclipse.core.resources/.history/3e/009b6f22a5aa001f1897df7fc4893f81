@@ -11,7 +11,6 @@ public class ServerThread extends Thread {
     private String message;                 // Variable to store messages from the client
     private String name, employeeID, email, password, deptName, role, passwordAttempt, emailAttempt; // Variables to store employee data
     private AccountDB shared; // Shared instance
-    private int loginChoice;
     
     // Constructor that accepts a socket connection and AccountDB
     public ServerThread(Socket s, AccountDB db) {
@@ -70,32 +69,15 @@ public class ServerThread extends Thread {
                 	 shared.printAccounts();
                 	 
                 	 shared.searchAccount(emailAttempt, passwordAttempt);
-                	 
-                	 if(shared.searchAccount(emailAttempt, passwordAttempt) == true)
-                	 {
-                		 
-                		 sendMessage("Login Success!\n"
-                		 		+ "Please enter 1 to create a health and safety report:\n"
-                		 		+ "Please enter 2 to retrieve all registerd accident reports:\n"
-                		 		+ "Please enter 3 to Assign health and safety report to employee:\n"
-                		 		+ "Please enter 4 to update your password:\n");
-                		 message = (String)in.readObject();
-                		 loginChoice= Integer.parseInt(message);
-                	 }
-                	 else {
-                		 sendMessage("Login failed - Unable to find account\n1 to try again");
-                		 message = (String)in.readObject();
-                		 loginChoice= Integer.parseInt(message);
-                	 }
                 }
+              
                 // Ask if the client wants to repeat the operation
                 
                 sendMessage("Enter 1 to repeat");
                 message = (String) in.readObject();
             } while (message.equalsIgnoreCase("1"));
             
-            }
-            catch (IOException | ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             // Handle exceptions during I/O or object read errors
             e.printStackTrace();
         } finally {

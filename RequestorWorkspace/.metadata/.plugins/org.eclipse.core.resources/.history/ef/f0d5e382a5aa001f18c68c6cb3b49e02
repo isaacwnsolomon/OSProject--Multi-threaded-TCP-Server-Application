@@ -83,11 +83,6 @@ public class Requester {
                     System.out.println(message);
                     message = input.nextLine();
                     sendMessage(message);               // Send password
-                    
-                    message = (String) in.readObject();
-                    System.out.println(message);
-                    message = input.nextLine();
-                    sendMessage(message);               // Send choice
 
                 }
 
