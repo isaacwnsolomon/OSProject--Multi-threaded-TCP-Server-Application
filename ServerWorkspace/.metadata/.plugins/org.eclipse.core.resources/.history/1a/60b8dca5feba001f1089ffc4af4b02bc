@@ -180,8 +180,6 @@ public class ServerThread extends Thread {
                 "Created By: " + employeeID + "\n" +
                 "Assigned To: " + assignedID + "\n" +
                 "Status: Open");
-        
-        sendMessage("Returning to the main menu...");
     }
 
 }

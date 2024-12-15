@@ -167,7 +167,8 @@ public class ServerThread extends Thread {
         sendMessage("Status: Open");
         sendMessage("Assigned Employee ID: ");
 
-        
+        message = (String) in.readObject();
+        assignedID = Integer.parseInt(message);
 
         reportDB.addReport(reportID, date, employeeID, reportType, "Open", assignedID);
 
@@ -180,8 +181,6 @@ public class ServerThread extends Thread {
                 "Created By: " + employeeID + "\n" +
                 "Assigned To: " + assignedID + "\n" +
                 "Status: Open");
-        
-        sendMessage("Returning to the main menu...");
     }
 
 }

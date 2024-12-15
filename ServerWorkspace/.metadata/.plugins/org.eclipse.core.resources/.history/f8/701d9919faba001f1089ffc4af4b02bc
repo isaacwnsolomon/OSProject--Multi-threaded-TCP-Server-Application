@@ -11,7 +11,7 @@ public class ServerThread extends Thread {
     private ObjectOutputStream out;         // Output stream for sending data to the client
     private ObjectInputStream in;           // Input stream for receiving data from the client
     private String message;                 // Variable to store messages from the client
-    private String name, employeeID, email, password, deptName, role, passwordAttempt, emailAttempt, reportType; // Variables to store employee data
+    private String name, employeeID, email, password, deptName, role, passwordAttempt, emailAttempt; // Variables to store employee data
     private AccountDB shared; // Shared instance
     private int loginChoice, reportChoice, reportID = 0, reportStatus,assignedID;
     private ReportDB reportDB;
@@ -35,19 +35,15 @@ public class ServerThread extends Thread {
             out.flush();
             in = new ObjectInputStream(myConnection.getInputStream());
             
-            boolean keepRunning = true; // Loop control flag
             // The server is ready to communicate
-           while(keepRunning) {
+            do {
                 // Prompt user for operation choice until a valid input is received
-                    sendMessage("Please enter 1 to register or 2 to login or 0 to exit");
+                do {
+                    sendMessage("Please enter 1 to register or 2 to login");
                     message = (String) in.readObject();
-                    
-                    if (message.equalsIgnoreCase("0")) {
-                        sendMessage("Goodbye!");
-                        keepRunning = false; // Exit the loop
-                        break;
-                    }
-                    
+                } while (!message.equalsIgnoreCase("1") && 
+                         !message.equalsIgnoreCase("2"));
+                
                 // Enter details if the client selected option 1
                 if (message.equalsIgnoreCase("1")) {
                     sendMessage("Please enter your name: ");
@@ -84,40 +80,82 @@ public class ServerThread extends Thread {
                 	 
                 //	 shared.searchAccount(emailAttempt, passwordAttempt);
                 	 
-                	 if (shared.searchAccount(emailAttempt, passwordAttempt)) {
-                		    boolean loggedIn = true;
+                	 if(shared.searchAccount(emailAttempt, passwordAttempt) == true)
+                	 {
+                		 
+                		 sendMessage("Login Success!\n"
+                		 		+ "Please enter 1 to create a health and safety report:\n"
+                		 		+ "Please enter 2 to retrieve all registerd accident reports:\n"
+                		 		+ "Please enter 3 to Assign health and safety report to employee:\n"
+                		 		+ "Please enter 4 to update your password:\n");
+                		 message = (String)in.readObject();
+                		 loginChoice= Integer.parseInt(message);
+                		 System.out.println("Login choice received: " + loginChoice);
 
-                		    while (loggedIn) {
-                		        sendMessage("Main Menu\n"
-                		                + "1. Create a health and safety report\n"
-                		                + "2. Retrieve all registered accident reports\n"
-                		                + "3. Assign health and safety report to employee\n"
-                		                + "4. Update your password\n"
-                		                + "0. Log out");
+                		 
+                		 if(loginChoice == 1)
+                		 {
+                			 System.out.println("Creating report...");
 
-                		        message = (String) in.readObject();
-
-                		        if (message.equals("1")) {
-                		            // Report creation logic
-                		            createReport();
-                		        } else if (message.equals("2")) {
-                		            sendMessage("Retrieving accident reports...");
-                		        } else if (message.equals("3")) {
-                		            sendMessage("Assigning report...");
-                		        } else if (message.equals("4")) {
-                		            sendMessage("Updating password...");
-                		        } else if (message.equals("0")) {
-                		            sendMessage("Logging out...");
-                		            loggedIn = false;
-                		        } else {
-                		            sendMessage("Invalid choice. Please try again.");
-                		        }
-                		    }
-                		}
-
+                			 String reportType;
+                			 String reportStatus = "Open";
+                			sendMessage("1 for accident report or 2 for health and safety risk report");
+                			 System.out.println("Sent report type prompt to client.");
+                			 try {
+                				    message = (String) in.readObject();
+                				    System.out.println("Received report choice from client: " + message);
+                				} catch (IOException | ClassNotFoundException e) {
+                				    System.out.println("Error receiving input from client.");
+                				    e.printStackTrace();
+                				}
+                			reportChoice = Integer.parseInt(message);
+                			reportID++;
+                			
+                			if(reportChoice == 1)
+                			{
+                				reportType = "Accident Report";
+                			}
+                			else {
+                				reportType = "Health and Safety Risk Report";
+                			}
+                			 System.out.println("Report type set to: " + reportType);
+                			
+                			sendMessage("Report ID: " + reportID);
+                			String dateString = date.toString(); // Convert LocalDate to ISO-8601 string ")
+                			sendMessage("Date: " + dateString);
+                			sendMessage("Employee ID of creation: " + employeeID);
+                			sendMessage("Status: " + reportStatus);
+                			sendMessage("Assigned Employee ID: ");
+                			
+                			message = (String)in.readObject();
+                			assignedID = Integer.parseInt(message);
+                			
+                			reportDB.addReport(reportID, date, employeeID, reportType, reportStatus, assignedID);
+                			
+                			// Confirm creation of report and send back to client
+                			 sendMessage("Report created successfully!\n" +
+                		                "Report Details:\n" +
+                		                "Type: " + reportType + "\n" +
+                		                "Report ID: " + reportID + "\n" +
+                		                "Date: " + date + "\n" +
+                		                "Created By: " + employeeID + "\n" +
+                		                "Assigned To: " + assignedID + "\n" +
+                		                "Status: " + reportStatus);
+                			 
+                			 break;
+                		 }
+                	 }
+                	 else {
+                		 sendMessage("Login failed - Unable to find account\n1 to try again");
+                		 message = (String)in.readObject();
+                		 loginChoice= Integer.parseInt(message);
+                	 }
                 }
-              
-            } 
+                // Ask if the client wants to repeat the operation
+                
+                sendMessage("Enter 1 to repeat");
+                message = (String) in.readObject();
+            } while (message.equalsIgnoreCase("1"));
             
             }
             catch (IOException | ClassNotFoundException e) {
@@ -145,43 +183,4 @@ public class ServerThread extends Thread {
             ioException.printStackTrace();
         }
     }
-    
-    private void createReport() throws IOException, ClassNotFoundException {
-        sendMessage("1 for accident report or 2 for health and safety risk report");
-
-        message = (String) in.readObject();
-        reportChoice = Integer.parseInt(message);
-        reportID++;
-
-        if(reportChoice == 1)
-        {
-        	reportType = "Accident Report";
-        }
-        else {
-        	reportType = "Health and Safety Report";
-        }
-        sendMessage("Report ID: " + reportID);
-        String dateString = date.toString(); // Convert LocalDate to string
-        sendMessage("Date: " + dateString);
-        sendMessage("Employee ID of creation: " + employeeID);
-        sendMessage("Status: Open");
-        sendMessage("Assigned Employee ID: ");
-
-        
-
-        reportDB.addReport(reportID, date, employeeID, reportType, "Open", assignedID);
-
-        // Confirm report creation
-        sendMessage("Report created successfully!\n" +
-                "Report Details:\n" +
-                "Type: " + reportType + "\n" +
-                "Report ID: " + reportID + "\n" +
-                "Date: " + dateString + "\n" +
-                "Created By: " + employeeID + "\n" +
-                "Assigned To: " + assignedID + "\n" +
-                "Status: Open");
-        
-        sendMessage("Returning to the main menu...");
-    }
-
 }

@@ -11,7 +11,7 @@ public class ServerThread extends Thread {
     private ObjectOutputStream out;         // Output stream for sending data to the client
     private ObjectInputStream in;           // Input stream for receiving data from the client
     private String message;                 // Variable to store messages from the client
-    private String name, employeeID, email, password, deptName, role, passwordAttempt, emailAttempt, reportType; // Variables to store employee data
+    private String name, employeeID, email, password, deptName, role, passwordAttempt, emailAttempt; // Variables to store employee data
     private AccountDB shared; // Shared instance
     private int loginChoice, reportChoice, reportID = 0, reportStatus,assignedID;
     private ReportDB reportDB;
@@ -99,7 +99,7 @@ public class ServerThread extends Thread {
 
                 		        if (message.equals("1")) {
                 		            // Report creation logic
-                		            createReport();
+                		            createReport(); // Move this logic to a separate method
                 		        } else if (message.equals("2")) {
                 		            sendMessage("Retrieving accident reports...");
                 		        } else if (message.equals("3")) {
@@ -145,43 +145,4 @@ public class ServerThread extends Thread {
             ioException.printStackTrace();
         }
     }
-    
-    private void createReport() throws IOException, ClassNotFoundException {
-        sendMessage("1 for accident report or 2 for health and safety risk report");
-
-        message = (String) in.readObject();
-        reportChoice = Integer.parseInt(message);
-        reportID++;
-
-        if(reportChoice == 1)
-        {
-        	reportType = "Accident Report";
-        }
-        else {
-        	reportType = "Health and Safety Report";
-        }
-        sendMessage("Report ID: " + reportID);
-        String dateString = date.toString(); // Convert LocalDate to string
-        sendMessage("Date: " + dateString);
-        sendMessage("Employee ID of creation: " + employeeID);
-        sendMessage("Status: Open");
-        sendMessage("Assigned Employee ID: ");
-
-        
-
-        reportDB.addReport(reportID, date, employeeID, reportType, "Open", assignedID);
-
-        // Confirm report creation
-        sendMessage("Report created successfully!\n" +
-                "Report Details:\n" +
-                "Type: " + reportType + "\n" +
-                "Report ID: " + reportID + "\n" +
-                "Date: " + dateString + "\n" +
-                "Created By: " + employeeID + "\n" +
-                "Assigned To: " + assignedID + "\n" +
-                "Status: Open");
-        
-        sendMessage("Returning to the main menu...");
-    }
-
 }
