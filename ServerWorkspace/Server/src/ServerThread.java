@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Scanner;
+import java.time.LocalDate; // import the LocalDate class
 
 public class ServerThread extends Thread {
 
@@ -11,12 +13,18 @@ public class ServerThread extends Thread {
     private String message;                 // Variable to store messages from the client
     private String name, employeeID, email, password, deptName, role, passwordAttempt, emailAttempt; // Variables to store employee data
     private AccountDB shared; // Shared instance
-    private int loginChoice;
+    private int loginChoice, reportChoice, reportID = 0, reportStatus,assignedID;
+    private ReportDB reportDB;
     
+    Scanner keyboard = new Scanner(System.in); 
+    LocalDate date = LocalDate.now(); // Create a date object
     // Constructor that accepts a socket connection and AccountDB
-    public ServerThread(Socket s, AccountDB db) {
+   
+    public ServerThread(Socket s, AccountDB db, ReportDB reportDB) {
         myConnection = s;
         shared = db;
+        this.reportDB = reportDB;
+        
     }
 
     // The main logic of the thread that handles client requests
@@ -67,9 +75,10 @@ public class ServerThread extends Thread {
                 	 sendMessage("Please enter your password");
                 	 passwordAttempt = (String) in.readObject();
                 	 
+                	 // Prints account details to screen 
                 	 shared.printAccounts();
                 	 
-                	 shared.searchAccount(emailAttempt, passwordAttempt);
+                //	 shared.searchAccount(emailAttempt, passwordAttempt);
                 	 
                 	 if(shared.searchAccount(emailAttempt, passwordAttempt) == true)
                 	 {
@@ -81,6 +90,58 @@ public class ServerThread extends Thread {
                 		 		+ "Please enter 4 to update your password:\n");
                 		 message = (String)in.readObject();
                 		 loginChoice= Integer.parseInt(message);
+                		 System.out.println("Login choice received: " + loginChoice);
+
+                		 
+                		 if(loginChoice == 1)
+                		 {
+                			 System.out.println("Creating report...");
+
+                			 String reportType;
+                			 String reportStatus = "Open";
+                			sendMessage("1 for accident report or 2 for health and safety risk report");
+                			 System.out.println("Sent report type prompt to client.");
+                			 try {
+                				    message = (String) in.readObject();
+                				    System.out.println("Received report choice from client: " + message);
+                				} catch (IOException | ClassNotFoundException e) {
+                				    System.out.println("Error receiving input from client.");
+                				    e.printStackTrace();
+                				}
+                			reportChoice = Integer.parseInt(message);
+                			reportID++;
+                			
+                			if(reportChoice == 1)
+                			{
+                				reportType = "Accident Report";
+                			}
+                			else {
+                				reportType = "Health and Safety Risk Report";
+                			}
+                			 System.out.println("Report type set to: " + reportType);
+                			
+                			sendMessage("Report ID: " + reportID);
+                			String dateString = date.toString(); // Convert LocalDate to ISO-8601 string ")
+                			sendMessage("Date: " + dateString);
+                			sendMessage("Employee ID of creation: " + employeeID);
+                			sendMessage("Status: " + reportStatus);
+                			sendMessage("Assigned Employee ID: ");
+                			
+                			message = (String)in.readObject();
+                			assignedID = Integer.parseInt(message);
+                			
+                			reportDB.addReport(reportID, date, employeeID, reportType, reportStatus, assignedID);
+                			
+                			// Confirm creation of report and send back to client
+                			 sendMessage("Report created successfully!\n" +
+                		                "Report Details:\n" +
+                		                "Type: " + reportType + "\n" +
+                		                "Report ID: " + reportID + "\n" +
+                		                "Date: " + date + "\n" +
+                		                "Created By: " + employeeID + "\n" +
+                		                "Assigned To: " + assignedID + "\n" +
+                		                "Status: " + reportStatus);
+                		 }
                 	 }
                 	 else {
                 		 sendMessage("Login failed - Unable to find account\n1 to try again");

@@ -1,0 +1,20 @@
+import java.util.LinkedList;
+
+public class ReportDB {
+	
+	private LinkedList<Report> list;
+	
+	public ReportDB()
+	{
+		list = new LinkedList<Report>();
+	}
+	
+	// Add account details to linked list
+	public synchronized void addReport(int reportID, localDate date, String employeeID, int reportType, String reportStatus,int assignedID, String role)
+	{
+		Report temp = new Report(reportID, date, employeeID, reportType, reportStatus, assignedID);
+		
+		list.add(temp);
+		
+	}
+}

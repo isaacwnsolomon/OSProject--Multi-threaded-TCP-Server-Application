@@ -10,6 +10,7 @@ public class MainServer {
         Socket connection;      // Socket for each individual connection to a client
         ServerThread handler;    // Thread to handle each client connection
         AccountDB sharedDB = new AccountDB(); // Shared AccountDB instance
+        ReportDB reportDB = new ReportDB();
 
         try {
             // Initialize the server to listen on port 2004 with a maximum queue of 10 connections
@@ -20,7 +21,7 @@ public class MainServer {
                 connection = provider.accept();   // Wait and accept an incoming client connection
 
                 // Create a new ServerThread to handle the client connection
-                handler = new ServerThread(connection, sharedDB);
+                handler = new ServerThread(connection, sharedDB, reportDB);
 
                 // Start the thread to manage client-server communication
                 handler.start();

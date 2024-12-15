@@ -87,8 +87,35 @@ public class Requester {
                     message = (String) in.readObject();
                     System.out.println(message);
                     message = input.nextLine();
-                    sendMessage(message);               // Send choice
+                    System.out.println("Client entered: " + message); 
+                    System.out.println("Sending choice to server: " + message);
+                    sendMessage(message);               // Send choice of reports
+                    
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message); 
+                    System.out.println("Sent report choice to server: " + message); // Debug confirmation
+                    
+                    message = (String) in.readObject();
+                    System.out.println(message); //report id 
+                    
+                    message = (String) in.readObject();
+                    System.out.println(message); // date
+                  
+                    message = (String) in.readObject();
+                    System.out.println(message); //EmployeeID
+                      
+                    message = (String) in.readObject();
+                    System.out.println(message); // status of report 
+                  
+                    message = (String) in.readObject();
+                    System.out.println(message); // "Assigned Employee ID:"
+                    message = input.nextLine();  // Capture user input for assigned employee ID
+                    sendMessage(message);        // Send assigned employee ID back to server
 
+                    
+                    
                 }
 
                 // Prompt if user wants to repeat the operation
