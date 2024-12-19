@@ -11,15 +11,6 @@ public class MainServer {
         ServerThread handler;    // Thread to handle each client connection
         AccountDB sharedDB = new AccountDB(); // Shared AccountDB instance
         ReportDB reportDB = new ReportDB();
-      
-        // Load accounts from the file at server startup
-        try {
-            sharedDB.loadAccountsFromFile();
-            System.out.println("Accounts loaded successfully.");
-        } catch (IOException e) {
-            System.out.println("Error loading accounts from file.");
-            e.printStackTrace();
-        }
 
         try {
             // Initialize the server to listen on port 2004 with a maximum queue of 10 connections
@@ -38,7 +29,6 @@ public class MainServer {
         } catch (IOException e) {
             e.printStackTrace();   // Print stack trace if an IOException occurs
         }
-   
       
     }
 }

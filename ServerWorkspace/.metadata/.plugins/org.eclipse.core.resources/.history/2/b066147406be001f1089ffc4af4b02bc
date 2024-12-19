@@ -118,13 +118,14 @@ public class ServerThread extends Thread {
                 		            default:
                 		                sendMessage("Invalid choice. Please try again.");
                 		        }
-                		        }
+                		    }
                 		} else {
                 		    sendMessage("Login failed. Please check your email and password.");
                 		}
-                }
-           }
-        }
+                		    }
+              
+            
+            }
             catch (IOException | ClassNotFoundException e) {
             // Handle exceptions during I/O or object read errors
             e.printStackTrace();

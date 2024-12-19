@@ -81,7 +81,9 @@ public class ServerThread extends Thread {
                 	 
                 	 // Prints account details to screen 
                 	 shared.printAccounts();
-               
+                	 
+                //	 shared.searchAccount(emailAttempt, passwordAttempt);
+                	 
                 	 if (shared.searchAccount(emailAttempt, passwordAttempt)) {
                 		    boolean loggedIn = true;
 
@@ -95,36 +97,29 @@ public class ServerThread extends Thread {
 
                 		        message = (String) in.readObject();
 
-                		        switch (message) {
-                		            case "1":
-                		                createReport(); // Handle report creation
-                		                break;
-                		            case "2":
-                		                sendMessage("Retrieving accident reports...");
-                		                // Add logic to retrieve reports
-                		                break;
-                		            case "3":
-                		                sendMessage("Assigning report...");
-                		                // Add logic for assigning reports
-                		                break;
-                		            case "4":
-                		                sendMessage("Updating password...");
-                		                // Add logic for updating password
-                		                break;
-                		            case "0":
-                		                sendMessage("Logging out...");
-                		                loggedIn = false; // Exit the logged-in loop
-                		                break;
-                		            default:
-                		                sendMessage("Invalid choice. Please try again.");
+                		        if (message.equals("1")) {
+                		            // Report creation logic
+                		            createReport();
+                		        } else if (message.equals("2")) {
+                		            sendMessage("Retrieving accident reports...");
+                		        } else if (message.equals("3")) {
+                		            sendMessage("Assigning report...");
+                		        } else if (message.equals("4")) {
+                		            sendMessage("Updating password...");
+                		        } else if (message.equals("0")) {
+                		            sendMessage("Logging out...");
+                		            loggedIn = false;
+                		        } else {
+                		            sendMessage("Invalid choice. Please try again.");
                 		        }
-                		        }
-                		} else {
-                		    sendMessage("Login failed. Please check your email and password.");
+                		    }
                 		}
+
                 }
-           }
-        }
+              
+            } 
+            
+            }
             catch (IOException | ClassNotFoundException e) {
             // Handle exceptions during I/O or object read errors
             e.printStackTrace();
