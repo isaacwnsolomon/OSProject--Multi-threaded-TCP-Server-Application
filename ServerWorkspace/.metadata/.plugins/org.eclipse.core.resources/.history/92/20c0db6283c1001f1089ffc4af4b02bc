@@ -1,0 +1,263 @@
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+import java.time.LocalDate;
+
+public class ServerThread extends Thread {
+
+    private Socket myConnection;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private String message, email, password, name, deptName, role, login, reportType, incidentDate, incidentStatus, employeeID;
+    private int reportChoice, reportID = 0, loginChoice, assignedID = 0;
+    private AccountDB shared;
+    private ReportDB reportDB;
+    private LocalDate date = LocalDate.now();
+
+    public ServerThread(Socket s, AccountDB db, ReportDB reportDB) {
+        myConnection = s;
+        shared = db;
+        this.reportDB = reportDB;
+    }
+
+    public void run() {
+        try {
+            out = new ObjectOutputStream(myConnection.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(myConnection.getInputStream());
+
+            do {
+                login = "-1";
+                // Input validation loop for initial menu choice
+                boolean validInput = false;
+                while (!validInput) {
+                    sendMessage("Enter 1. To Register 2. Login");
+                    message = (String) in.readObject();
+                    if (message.equals("1") || message.equals("2")) {
+                        validInput = true;
+                    } else {
+                        sendMessage("Invalid input. Please enter either 1 or 2.");
+                    }
+                }
+
+                if (message.equals("1")) {
+                    handleRegistration();
+                } else if (message.equals("2")) {
+                    handleLogin();
+                }
+
+                if (login.equals("1")) {
+                    handleMainMenu();
+                }
+            } while (true);
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            closeConnections();
+        }
+    }
+
+    private void handleMainMenu() throws IOException, ClassNotFoundException {
+        do {
+            sendMessage("|------- Welcome to the Main Menu -------|");
+            boolean validChoice = false;
+            while (!validChoice) {
+                sendMessage("Enter \n1.To create a report\n2. View all accident reports\n3. Search and update a report\n4. View reports assigned to you\n5. Change Password\n-1.Exit");
+                message = (String) in.readObject();
+                
+                if (message.matches("[1-5]|-1")) {
+                    validChoice = true;
+                    reportChoice = Integer.parseInt(message);
+                } else {
+                    sendMessage("Invalid input. Please enter a number between 1 and 5, or -1 to exit.");
+                    continue;
+                }
+            }
+
+            switch (reportChoice) {
+                case 1:
+                    createReport();
+                    break;
+                case 2:
+                    sendMessage("Retrieving accident reports...");
+                    String reports = reportDB.getAccidentReports();
+                    sendMessage(reports);
+                    break;
+                case 3:
+                    searchAndUpdateReport();
+                    break;
+                case 4:
+                    viewAssignedReports();
+                    break;
+                case 5:
+                    changePassword();
+                    break;
+                case -1:
+                    sendMessage("Exiting... Goodbye!");
+                    break;
+            }
+        } while (reportChoice != -1);
+    }
+
+    private void createReport() throws IOException, ClassNotFoundException {
+        sendMessage("Option 1: Create a report");
+        
+        // Input validation for report type
+        boolean validReportType = false;
+        while (!validReportType) {
+            sendMessage("Enter\n1.To select Accident Report\n2.To select Health and Safety Risk");
+            message = (String) in.readObject();
+            
+            if (message.equals("1")) {
+                reportType = "Accident Report";
+                validReportType = true;
+            } else if (message.equals("2")) {
+                reportType = "Health and Safety Report";
+                validReportType = true;
+            } else {
+                sendMessage("Invalid input. Please enter either 1 or 2.");
+            }
+        }
+
+        // Input validation for report status
+        boolean validStatus = false;
+        while (!validStatus) {
+            sendMessage("Report Status\nEnter\n1.To leave incident open\n2.To close the incident");
+            message = (String) in.readObject();
+            
+            if (message.equals("1")) {
+                incidentStatus = "Open";
+                validStatus = true;
+            } else if (message.equals("2")) {
+                incidentStatus = "Closed";
+                validStatus = true;
+            } else {
+                sendMessage("Invalid input. Please enter either 1 or 2.");
+            }
+        }
+
+        int generatedID = reportDB.addReport(date, employeeID, reportType, incidentStatus, assignedID);
+        String dateString = date.toString();
+
+        sendMessage("Report created successfully!\n" +
+                "Report Details:\n" +
+                "Type: " + reportType + "\n" +
+                "Report ID: " + generatedID + "\n" +
+                "Date: " + dateString + "\n" +
+                "Created By: " + employeeID + "\n" +
+                "Assigned To: Null\n" +
+                "Status: " + incidentStatus);
+    }
+
+    private void searchAndUpdateReport() throws IOException, ClassNotFoundException {
+        sendMessage("|----> Search and Update Report <-----|");
+
+        // Input validation for report ID
+        boolean validReportID = false;
+        Report report = null;
+        while (!validReportID) {
+            sendMessage("Enter the Report ID to search:");
+            message = (String) in.readObject();
+            
+            if (message.matches("\\d+")) {
+                report = reportDB.getReportById(Integer.parseInt(message));
+                if (report != null) {
+                    validReportID = true;
+                } else {
+                    sendMessage("Report not found. Please enter a valid Report ID.");
+                }
+            } else {
+                sendMessage("Invalid input. Please enter a numeric Report ID.");
+            }
+        }
+
+        sendMessage("Report Found:\n" + report.toString() + "\n");
+
+        // Input validation for assigned employee ID
+        boolean validAssignedID = false;
+        while (!validAssignedID) {
+            sendMessage("Enter the Employee ID to assign this report to (numeric only):");
+            message = (String) in.readObject();
+            
+            if (message.matches("\\d+")) {
+                report.setAssignedID(Integer.parseInt(message));
+                validAssignedID = true;
+            } else {
+                sendMessage("Invalid input. Please enter a numeric Employee ID.");
+            }
+        }
+
+        // Input validation for status update choice
+        boolean validStatusChoice = false;
+        while (!validStatusChoice) {
+            sendMessage("Do you want to update the status? (1.yes/2.no):");
+            message = (String) in.readObject();
+            
+            if (message.equals("1")) {
+                // Input validation for new status
+                boolean validNewStatus = false;
+                while (!validNewStatus) {
+                    sendMessage("Enter new status (1.Open/2.Closed):");
+                    message = (String) in.readObject();
+                    
+                    if (message.equals("1")) {
+                        report.setReportStatus("Open");
+                        validNewStatus = true;
+                    } else if (message.equals("2")) {
+                        report.setReportStatus("Closed");
+                        validNewStatus = true;
+                    } else {
+                        sendMessage("Invalid input. Please enter either 1 or 2.");
+                    }
+                }
+                validStatusChoice = true;
+            } else if (message.equals("2")) {
+                validStatusChoice = true;
+            } else {
+                sendMessage("Invalid input. Please enter either 1 or 2.");
+            }
+        }
+
+        reportDB.updateReport(report);
+        sendMessage("Report updated successfully!\n" + report.toString());
+    }
+
+    private void changePassword() throws IOException, ClassNotFoundException {
+        sendMessage("|----> Change Password <-----|");
+        
+        sendMessage("Please enter your current password:");
+        String currentPassword = (String) in.readObject();
+        
+        sendMessage("Please enter your new password:");
+        String newPassword = (String) in.readObject();
+        
+        // Input validation for password confirmation
+        boolean validConfirmation = false;
+        while (!validConfirmation) {
+            sendMessage("Please confirm your new password:");
+            String confirmPassword = (String) in.readObject();
+            
+            if (confirmPassword.equals(newPassword)) {
+                validConfirmation = true;
+            } else {
+                sendMessage("Passwords do not match. Please confirm your new password again.");
+            }
+        }
+        
+        if (shared.updatePassword(email, currentPassword, newPassword)) {
+            sendMessage("Password successfully changed!");
+        } else {
+            sendMessage("Password change failed: Current password is incorrect");
+        }
+    }
+    private void closeConnections() {
+        try {
+            in.close();
+            out.close();
+            myConnection.close();
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+}

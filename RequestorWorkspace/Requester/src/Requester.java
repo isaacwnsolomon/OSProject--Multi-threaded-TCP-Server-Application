@@ -3,54 +3,236 @@ import java.net.*;
 import java.util.Scanner;
 
 public class Requester {
-    
-    Socket requestSocket;                   // Socket to connect to the server
-    ObjectOutputStream out;                 // Stream to send data to the server
-    ObjectInputStream in;                   // Stream to receive data from the server
-    String message;                         // Variable to hold messages exchanged
-    Scanner input;                          // Scanner to capture user input
+	//socket for connecting to server
+    Socket requestSocket;
+    // output and input stream to communicate with server 
+    ObjectOutputStream out;
+    ObjectInputStream in;
+    Scanner input;
+    String message;
 
-    // Constructor initializing the Scanner
+    //constructor initialise scanner
     Requester() {
         input = new Scanner(System.in);
     }
-
-    // Main method to establish the client connection and manage communication
+    
+    // method to start client 
     void run() {
         try {
-            // 1. Creating a socket to connect to the server on localhost at port 2004
+        	// connect to server on port 2004
             requestSocket = new Socket("127.0.0.1", 2004);
             System.out.println("Connected to localhost in port 2004");
 
-            // 2. Initialize output and input streams for communication
+            //initialse input and output streams 
             out = new ObjectOutputStream(requestSocket.getOutputStream());
             out.flush();
             in = new ObjectInputStream(requestSocket.getInputStream());
 
-            
-            boolean running = true;
-            
-            while (running) {
-                message = (String) in.readObject(); // Read message from server
-                System.out.println(message);       // Display server message to user
+            // main loop 
+            do {
+            	//initial message to login or register 
+                message = (String) in.readObject();
+                System.out.println(message);
+                message = input.nextLine();
+                sendMessage(message);
 
-                if (message.equalsIgnoreCase("Goodbye!")) {
-                    running = false; // End the loop and close the connection
-                    break;
+             // Registration path
+                if (message.equals("1")) {  
+                    // Registration header
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    
+                    // Name
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+                    
+                    // Employee ID validation loop
+                    boolean validEmployeeID = false;
+                    do {
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                        
+                        message = (String) in.readObject();
+                        if (message.startsWith("ERROR:")) {
+                            System.out.println(message);
+                            validEmployeeID = false;
+                        } else {
+                            validEmployeeID = true;
+                            System.out.println("Employee ID accepted");
+                        }
+                    } while (!validEmployeeID);
+                    
+                    // Email validation loop
+                    boolean validEmail = false;
+                    do {
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                        
+                        message = (String) in.readObject();
+                        if (message.startsWith("ERROR:")) {
+                            System.out.println(message);
+                            validEmail = false;
+                        } else {
+                            validEmail = true;
+                            System.out.println("Email accepted");
+                        }
+                    } while (!validEmail);
+                    
+                    // Password
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+                    
+                    // Department
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+                    
+                    // Role
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+                    
+                    // Registration result
+                    message = (String) in.readObject();
+                    System.out.println(message);
                 }
+                   // login 
+                 else if (message.equals("2")) {
+                	 message = (String) in.readObject();
+                     System.out.println(message);
+                	do {
+                        for (int i = 0; i < 2; i++) {
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message);
+                        }
 
-                message = input.nextLine();  // Get user input
-                sendMessage(message);        // Send user input to server
-            }
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                    } while (message.equals("Login Failed, please try again"));
 
-        } catch (UnknownHostException unknownHost) {
-            System.err.println("You are trying to connect to an unknown host!");
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        } catch (ClassNotFoundException e) {
+                    // Main Menu
+                    do {
+                    	//Welcome message
+                    	message = (String) in.readObject();
+                        System.out.println(message);
+                        //Menu choice
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                        
+                        if (message.equals("1")) {
+                        //Confirming option 1
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        //Accident or health
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);   
+                        //status
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                      
+                        //Confirmation of all details 
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        }
+                        else if(message.equalsIgnoreCase("2"))
+                        {
+                        	// Retrieving reports message
+                        	message = (String) in.readObject();
+                        	System.out.println(message);
+                        	//reports
+                        	message = (String) in.readObject();
+                        	System.out.println(message);
+                        }
+                        else if(message.equalsIgnoreCase("3")) {
+                            // search and update title
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            // Enter report ID
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message); 
+                            // Found report details
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            // Employee id to assign
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message);
+                            // update status prompt
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message); 
+                            // Open/closed (if yes was selected)
+                            if (message.equalsIgnoreCase("1")) {
+                                message = (String) in.readObject();
+                                System.out.println(message);
+                                message = input.nextLine();
+                                sendMessage(message); 
+                            }
+                            // Confirmed report update
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                        }
+                        else if(message.equals("4")) {
+                            // Retrieving assigned reports message
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                        }
+                        else if(message.equals("5")) {
+                            // Change password title
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            
+                            // Current password prompt
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message);
+                            
+                            // New password prompt
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message);
+                            
+                            // Confirm password prompt
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message);
+                            
+                            // Result message
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                        }
+                    } while (!message.equals("-1"));
+                }
+            } while (true);
+
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
-            // 4. Closing the connection and streams
             try {
                 in.close();
                 out.close();
@@ -60,21 +242,19 @@ public class Requester {
             }
         }
     }
-
-    // Helper method to send messages to the server
+    // method to sennd message to server 
     void sendMessage(String msg) {
         try {
-            out.writeObject(msg);          // Write message object to output stream
-            out.flush();                   // Flush the stream to send the message
-            System.out.println("client> " + msg);   // Print the message for client’s reference
+            out.writeObject(msg);
+            out.flush();
+            System.out.println("client> " + msg);
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
     }
-
-    // Main method to create and run the client
+// start client
     public static void main(String args[]) {
-        Requester client = new Requester();  // Create a new client instance
-        client.run();                        // Run the client’s main process
+        Requester client = new Requester();
+        client.run();
     }
 }

@@ -1,0 +1,122 @@
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+public class Requester {
+
+    Socket requestSocket;                   // Socket to connect to the server
+    ObjectOutputStream out;                 // Stream to send data to the server
+    ObjectInputStream in;                   // Stream to receive data from the server
+    String message;                         // Variable to hold messages exchanged
+    Scanner input;                          // Scanner to capture user input
+
+    // Constructor initializing the Scanner
+    Requester() {
+        input = new Scanner(System.in);
+    }
+
+    // Main method to establish the client connection and manage communication
+    void run() {
+        try {
+            // 1. Creating a socket to connect to the server
+            requestSocket = new Socket("127.0.0.1", 2004);
+            System.out.println("Connected to localhost in port 2004");
+            out = new ObjectOutputStream(requestSocket.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(requestSocket.getInputStream());
+
+            // 2. Communicate with the server in a loop
+            while (true) {
+                // Display server message
+                message = (String) in.readObject();
+                System.out.println("Server: " + message);
+
+                if (message.equalsIgnoreCase("Goodbye!")) {
+                    break; // Exit the loop and close the connection
+                }
+
+                // Handle main menu after login
+                if (message.startsWith("Main Menu")) {
+                    System.out.print("Enter your choice: ");
+                    message = input.nextLine();
+                    sendMessage(message);
+
+                    switch (message) {
+                        case "1": // Create a report
+                            createReport();
+                            break;
+                        case "2": // View reports
+                            viewReports();
+                            break;
+                        case "3": // Assign report (not implemented)
+                            System.out.println("Feature not yet implemented.");
+                            break;
+                        case "4": // Update password (not implemented)
+                            System.out.println("Feature not yet implemented.");
+                            break;
+                        case "0": // Log out
+                            System.out.println("Logging out...");
+                            break;
+                        default:
+                            System.out.println("Invalid choice. Please try again.");
+                    }
+                } else {
+                    // Prompt user for input for registration/login
+                    message = input.nextLine();
+                    sendMessage(message);
+                }
+            }
+
+        } catch (UnknownHostException unknownHost) {
+            System.err.println("You are trying to connect to an unknown host!");
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            // 3. Closing the connection and streams
+            try {
+                if (in != null) in.close();
+                if (out != null) out.close();
+                if (requestSocket != null) requestSocket.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
+    }
+
+    // Handle report creation
+    private void createReport() throws IOException, ClassNotFoundException {
+        System.out.println("Enter 1 for Accident Report or 2 for Health and Safety Report: ");
+        String reportType = input.nextLine();
+        sendMessage(reportType); // Send report type to server
+
+        System.out.println("Enter employee ID of the report creator: ");
+        String employeeID = input.nextLine();
+        sendMessage(employeeID); // Send employee ID to server
+
+        System.out.println("Report created successfully!");
+    }
+
+    // Handle viewing reports
+    private void viewReports() throws IOException, ClassNotFoundException {
+        System.out.println("Retrieving reports...");
+        String reports = (String) in.readObject(); // Receive report details from the server
+        System.out.println("Reports:\n" + reports);
+    }
+
+    // Send a message to the server
+    private void sendMessage(String msg) {
+        try {
+            out.writeObject(msg);          // Write message object to output stream
+            out.flush();                   // Flush the stream to send the message
+            System.out.println("Client> " + msg);   // Print the message for client’s reference
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    // Main method to create and run the client
+    public static void main(String[] args) {
+        Requester client = new Requester();  // Create a new client instance
+        client.run();                        // Run the client’s main process
+    }
+}

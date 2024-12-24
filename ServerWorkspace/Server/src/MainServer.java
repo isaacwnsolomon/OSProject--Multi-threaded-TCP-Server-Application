@@ -20,6 +20,16 @@ public class MainServer {
             System.out.println("Error loading accounts from file.");
             e.printStackTrace();
         }
+        
+        // Load reports from the file at server startup
+        try {
+            reportDB.loadReportsFromFile();
+            System.out.println("Reports loaded successfully.");
+        } catch (IOException e) {
+            System.out.println("Error loading accounts from file.");
+            e.printStackTrace();
+        }
+      
 
         try {
             // Initialize the server to listen on port 2004 with a maximum queue of 10 connections

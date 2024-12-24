@@ -1,0 +1,136 @@
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+public class Requester {
+
+    Socket requestSocket;
+    ObjectOutputStream out;
+    ObjectInputStream in;
+    Scanner input;
+    String message;
+
+    Requester() {
+        input = new Scanner(System.in);
+    }
+
+    void run() {
+        try {
+            requestSocket = new Socket("127.0.0.1", 2004);
+            System.out.println("Connected to localhost in port 2004");
+
+            out = new ObjectOutputStream(requestSocket.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(requestSocket.getInputStream());
+
+            do {
+                message = (String) in.readObject();
+                System.out.println(message);
+                message = input.nextLine();
+                sendMessage(message);
+
+                if (message.equals("1")) {
+                	 message = (String) in.readObject();
+                     System.out.println(message);
+                    for (int i = 0; i < 6; i++) {
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                    }
+                    message = (String) in.readObject();
+                    System.out.println(message);
+
+                    
+                } else if (message.equals("2")) {
+                	 message = (String) in.readObject();
+                     System.out.println(message);
+                	do {
+                        for (int i = 0; i < 2; i++) {
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message);
+                        }
+
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                    } while (message.equals("Login Failed, please try again"));
+
+                    // Main Menu
+                    do {
+                    	//Welcome message
+                    	message = (String) in.readObject();
+                        System.out.println(message);
+                        //Menu choice
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                        
+                        if (message.equals("1")) {
+                        //Confirming option 1
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        //Accident or health
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);   
+                        //status
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                        //ID
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        //date
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        //creator id
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        //status
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        //assigned ID
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        //Confirmation of all details 
+                        message = (String) in.readObject();
+                        System.out.println(message);
+               
+                        }
+                    } while (!message.equals("-1"));
+                }
+            } while (true);
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+                out.close();
+                requestSocket.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
+    }
+
+    void sendMessage(String msg) {
+        try {
+            out.writeObject(msg);
+            out.flush();
+            System.out.println("client> " + msg);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    public static void main(String args[]) {
+        Requester client = new Requester();
+        client.run();
+    }
+}

@@ -1,0 +1,187 @@
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.time.LocalDate;
+
+public class ServerThread extends Thread {
+
+    private Socket myConnection;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private String message, email, password, name, deptName, role, login, reportType, incidentDate, incidentStatus, employeeID;
+    private int reportChoice, reportID = 0, loginChoice;
+    private AccountDB shared;
+    private ReportDB reportDB;
+    private LocalDate date = LocalDate.now();
+
+    public ServerThread(Socket s, AccountDB db, ReportDB reportDB) {
+        myConnection = s;
+        shared = db;
+        this.reportDB = reportDB;
+    }
+
+    public void run() {
+        try {
+            out = new ObjectOutputStream(myConnection.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(myConnection.getInputStream());
+
+            do {
+                login = "-1";
+                do {
+                    sendMessage("Enter 1. To Register 2. Search Login");
+                    message = (String) in.readObject();
+                    loginChoice = Integer.parseInt(message);
+                } while (loginChoice != 1 && loginChoice != 2);
+
+                if (message.equalsIgnoreCase("1")) {
+                    sendMessage("|----> Register <-----|");
+                    sendMessage("Please Enter your Name");
+                    name = (String) in.readObject();
+
+                    sendMessage("Please Enter your Employee ID");
+                    employeeID = (String) in.readObject();
+                  //  employeeID = Integer.parseInt(message);
+
+                    sendMessage("Please Enter your Email");
+                    email = (String) in.readObject();
+
+                    sendMessage("Please Enter your Password");
+                    password = (String) in.readObject();
+
+                    sendMessage("Please Enter your Department Name");
+                    deptName = (String) in.readObject();
+
+                    sendMessage("Please Enter your Role");
+                    role = (String) in.readObject();
+
+                    if (shared.searchAccount(email, employeeID)) {
+                        sendMessage("Registration failed, Email or Employee ID already exists");
+                    } else {
+                        shared.addAccount(name, employeeID, email, password, deptName, role);
+                        sendMessage("Registration succeeded");
+                    }
+
+                } else if (message.equalsIgnoreCase("2")) {
+                    do {
+                        sendMessage("|----> Login <-----|");
+
+                        sendMessage("Please Enter your Email");
+                        email = (String) in.readObject();
+
+                        sendMessage("Please Enter your Password");
+                        password = (String) in.readObject();
+
+                        if (shared.searchAccount(email, password)) {
+                            sendMessage("Login Successful");
+                            login = "1";
+                        } else {
+                            sendMessage("Login Failed, please try again");
+                            login = "-1";
+                        }
+                    } while (login.equalsIgnoreCase("-1"));
+                }
+
+                if (login.equalsIgnoreCase("1")) {
+                    do {
+                        sendMessage("|------- Welcome to the Main Menu -------|");
+                        sendMessage("Enter \n1.To create a report\n-1.Exit");
+                        message = (String) in.readObject();
+                        reportChoice = Integer.parseInt(message);
+
+                        switch (reportChoice) {
+                            case 1:
+                                
+
+                               
+                                reportDB.addReport(reportID, incidentDate, incidentStatus, reportType);
+                                sendMessage("Report created successfully\n" +
+                                        "Report Details:\nType: " + reportType + "\nReport ID: " + reportID +
+                                        "\nDate: " + incidentDate + "\nStatus: " + incidentStatus);
+                                break;
+
+                            case -1:
+                                sendMessage("Exiting... Goodbye!");
+                                break;
+
+                            default:
+                                sendMessage("Invalid choice. Please try again.");
+                        }
+                    } while (reportChoice != -1);
+                }
+            } while (message.equalsIgnoreCase("1"));
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                in.close();
+                out.close();
+                myConnection.close();
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
+    }
+
+    void sendMessage(String msg) {
+        try {
+            out.writeObject(msg);
+            out.flush();
+            System.out.println("server> " + msg);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+}
+
+    
+    private void createReport() throws IOException, ClassNotFoundException {
+    	sendMessage("Option 1: Create a report");
+        do {
+            sendMessage("Enter\n1.To select Accident Report\n2.To select Health and Safety Risk");
+            message = (String) in.readObject();
+        } while (!message.equalsIgnoreCase("1") && !message.equalsIgnoreCase("2"));
+
+        if (message.equalsIgnoreCase("1")) {
+            reportType = "Accident Report";
+        } else if (message.equalsIgnoreCase("2")) {
+            reportType = "Health and Safety Report";
+        }
+        reportID++;
+        
+        sendMessage("Report Status\nEnter\n1.To leave incident open\n2.To close the incident");
+        message = (String) in.readObject();
+        if (message.equalsIgnoreCase("1")) {
+            incidentStatus = "Open";
+        } else if (message.equalsIgnoreCase("2")) {
+            incidentStatus = "Closed";
+        }
+
+        
+        sendMessage("Report ID: " + reportID);
+        String dateString = date.toString(); // Convert LocalDate to string
+        sendMessage("Date: " + dateString);
+        sendMessage("Employee ID of creation: " + employeeID);
+        sendMessage("Status: " + incidentStatus);
+        sendMessage("Assigned Employee ID: ");
+
+        
+
+        reportDB.addReport(reportID, date, employeeID, reportType,"null", incidentStatus);
+
+        // Confirm report creation
+        sendMessage("Report created successfully!\n" +
+                "Report Details:\n" +
+                "Type: " + reportType + "\n" +
+                "Report ID: " + reportID + "\n" +
+                "Date: " + dateString + "\n" +
+                "Created By: " + employeeID + "\n" +
+                "Assigned To: Null\n" +
+                "Status: Open");
+    
+        
+    }
+
+}

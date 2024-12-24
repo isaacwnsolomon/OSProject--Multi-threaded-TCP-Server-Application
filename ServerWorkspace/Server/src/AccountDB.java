@@ -1,12 +1,13 @@
 import java.io.*;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
 
 public class AccountDB {
-	
+	// store account objects 
 	private LinkedList<Account> list;
-	
+	//constructor to instialise accountDB
 	public AccountDB()
 	{
 		list = new LinkedList<Account>();
@@ -15,8 +16,9 @@ public class AccountDB {
 	// Add account details to linked list
 	public synchronized void addAccount(String name, String employeeID, String email,String password, String deptID, String role) throws IOException
 	{
+		// creates a new account 
 		Account temp = new Account(name,employeeID,email,password,deptID,role);
-		
+		//adds the account to th elist 
 		list.add(temp);
 
 		  // Save to file, seperated by commas and a new line for each account
@@ -35,13 +37,13 @@ public class AccountDB {
             System.out.println("No account details file found.");
             return;
         }
-
+        // read each line from the file and create an account object 
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 String[] parts = line.split(",");
-
-                if (parts.length == 6) { // Ensure the line has all parts
+                // Ensure the line has all parts
+                if (parts.length == 6) {
                     String name = parts[0];
                     String employeeID = parts[1];
                     String email = parts[2];
@@ -58,6 +60,7 @@ public class AccountDB {
     
 	  
 	}
+    // searches for account by email and password
 	public synchronized boolean searchAccount(String email, String password)
 	{
 		Iterator i = list.iterator();
@@ -77,7 +80,20 @@ public class AccountDB {
 		}
 		return false; // If no match found 
 	}
-	 // Print all accounts in the list
+	// retrieves account by email 
+	public synchronized Account getAccountByEmail(String email) {
+	    for (int i = 0; i < list.size(); i++) {
+	    	// Get the account at index i
+	        Account account = list.get(i); 
+	        if (account.getEmail().equalsIgnoreCase(email)) {
+	        	 // Return the matching account
+	            return account;
+	        }
+	    }
+	    return null; // No matching account found
+	}
+
+	 // Print all accounts in the list to console 
     public synchronized void printAccounts() {
         if (list.isEmpty()) {
             System.out.println("No accounts available.");
@@ -87,4 +103,49 @@ public class AccountDB {
             }
         }
     }
+    // updates password of account and saves to file 
+    public synchronized boolean updatePassword(String email, String oldPassword, String newPassword) {
+        for (Account account : list) {
+            if (account.getEmail().equalsIgnoreCase(email) && account.getPassword().equals(oldPassword)) {
+                account.setPassword(newPassword);
+                saveAccountsToFile();  // Save changes to file
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // method to save changes to file
+    private void saveAccountsToFile() {
+        try (FileWriter writer = new FileWriter("AccountDetails.txt")) {
+            for (Account account : list) {
+                writer.write(account.getName() + "," + account.getEmployeeID() + "," + 
+                            account.getEmail() + "," + account.getPassword() + "," + 
+                            account.getDeptName() + "," + account.getRole() + 
+                            System.lineSeparator());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    // checks if an email exists in the database
+    public synchronized boolean emailExists(String email) {
+        for (Account account : list) {
+            if (account.getEmail().equalsIgnoreCase(email)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // Checks if employeeID exists in file 
+    public synchronized boolean employeeIDExists(String employeeID) {
+        for (Account account : list) {
+            if (account.getEmployeeID().equals(employeeID)) {
+                return true;
+            }
+        }
+        return false;
+    }
+   
 }

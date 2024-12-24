@@ -1,0 +1,87 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.LinkedList;
+import java.util.Scanner;
+
+public class ReportDB {
+	
+	private LinkedList<Report> list;
+	
+	public ReportDB()
+	{
+		list = new LinkedList<Report>();
+	}
+	
+	// Add account details to linked list
+	public synchronized void addReport(int reportID, LocalDate date, String employeeID, String reportType, String reportStatus,int assignedID) throws IOException
+	{
+		Report temp = new Report(reportID++, date, employeeID, reportType, reportStatus, assignedID);
+		
+		list.add(temp);
+		
+		  // Save to file, seperated by commas and a new line for each account
+        try (FileWriter writer = new FileWriter("ReportDetails.txt", true)) {
+            writer.write(reportID + "," + date + "," + employeeID + "," + reportType + "," + reportStatus + "," + assignedID + System.lineSeparator());
+        }
+		
+	}
+	
+    // Load accounts from file into the list
+    public synchronized void loadReportsFromFile() throws FileNotFoundException {
+        File file = new File("ReportDetails.txt");
+
+        // Check if the file exists
+        if (!file.exists()) {
+            System.out.println("No report details file found.");
+            return;
+        }
+
+        try (Scanner scanner = new Scanner(file)) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split(",");
+
+                if (parts.length == 6) { // Ensure the line has all parts
+                    int reportID = Integer.parseInt(parts[0]);
+                    LocalDate date = LocalDate.parse(parts[1]);
+                    String employeeID = parts[2];
+                    String reportType = parts[3];
+                    String reportStatus = parts[4];
+                    int assignedID = Integer.parseInt(parts[5]);
+                    
+
+                    // Create Account and add to list
+                    Report temp = new Report(reportID, date, employeeID, reportType, reportStatus, assignedID);
+                    list.add(temp);
+                }
+              }
+            }
+            
+    }
+    public synchronized String getAllReports() {
+        if (list.isEmpty()) {
+            return "No reports available.";
+        }
+
+        StringBuilder reportDetails = new StringBuilder("All Reports:\n");
+
+        for (Report report : list) {
+        	if(report.getReportType.equalsIgnoreCase("Accident Report"))
+        	{
+            reportDetails.append(report.toString()).append("\n----------------------------\n");
+        	}
+        }
+
+        return reportDetails.toString();
+    }
+}
+
+        
+   
+	  
+	
+
+    

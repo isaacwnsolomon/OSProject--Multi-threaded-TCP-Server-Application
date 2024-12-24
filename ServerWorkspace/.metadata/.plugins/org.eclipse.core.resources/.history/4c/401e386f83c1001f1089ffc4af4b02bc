@@ -1,0 +1,152 @@
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+import java.time.LocalDate;
+
+public class ServerThread extends Thread {
+
+    private Socket myConnection;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private String message, email, password, name, deptName, role, login, reportType, incidentDate, incidentStatus, employeeID;
+    private int reportChoice, reportID = 0, loginChoice, assignedID = 0;
+    private AccountDB shared;
+    private ReportDB reportDB;
+    private LocalDate date = LocalDate.now();
+
+    public ServerThread(Socket s, AccountDB db, ReportDB reportDB) {
+        myConnection = s;
+        shared = db;
+        this.reportDB = reportDB;
+    }
+
+    private void sendMessage(String msg) {
+        try {
+            out.writeObject(msg);
+            out.flush();
+            System.out.println("server> " + msg);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    private void handleRegistration() throws IOException, ClassNotFoundException {
+        sendMessage("|----> Register <-----|");
+        
+        // Get name
+        sendMessage("Please Enter your Name");
+        name = (String) in.readObject();
+
+        // Get and validate Employee ID
+        boolean validEmployeeID = false;
+        while (!validEmployeeID) {
+            sendMessage("Please Enter your Employee ID");
+            employeeID = (String) in.readObject();
+            
+            if (shared.employeeIDExists(employeeID)) {
+                sendMessage("ERROR: This Employee ID is already registered. Please try again.");
+            } else {
+                validEmployeeID = true;
+            }
+        }
+
+        // Get and validate Email
+        boolean validEmail = false;
+        while (!validEmail) {
+            sendMessage("Please Enter your Email");
+            email = (String) in.readObject();
+            
+            if (shared.emailExists(email)) {
+                sendMessage("ERROR: This email is already registered. Please try again.");
+            } else {
+                validEmail = true;
+            }
+        }
+
+        sendMessage("Please Enter your Password");
+        password = (String) in.readObject();
+
+        sendMessage("Please Enter your Department Name");
+        deptName = (String) in.readObject();
+
+        sendMessage("Please Enter your Role");
+        role = (String) in.readObject();
+
+        shared.addAccount(name, employeeID, email, password, deptName, role);
+        sendMessage("Registration succeeded");
+    }
+
+    private void handleLogin() throws IOException, ClassNotFoundException {
+        do {
+            sendMessage("|----> Login <-----|");
+            sendMessage("Please Enter your Email");
+            email = (String) in.readObject();
+
+            sendMessage("Please Enter your Password");
+            password = (String) in.readObject();
+
+            if (shared.searchAccount(email, password)) {
+                sendMessage("Login Successful");
+                Account loggedInAccount = shared.getAccountByEmail(email);
+                if (loggedInAccount != null) {
+                    employeeID = loggedInAccount.getEmployeeID();
+                }
+                login = "1";
+            } else {
+                sendMessage("Login Failed, please try again");
+                login = "-1";
+            }
+        } while (login.equals("-1"));
+    }
+
+    public void run() {
+        try {
+            out = new ObjectOutputStream(myConnection.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(myConnection.getInputStream());
+
+            do {
+                login = "-1";
+                // Input validation loop for initial menu choice
+                boolean validInput = false;
+                while (!validInput) {
+                    sendMessage("Enter 1. To Register 2. Login");
+                    message = (String) in.readObject();
+                    if (message.equals("1") || message.equals("2")) {
+                        validInput = true;
+                    } else {
+                        sendMessage("Invalid input. Please enter either 1 or 2.");
+                    }
+                }
+
+                if (message.equals("1")) {
+                    handleRegistration();
+                } else if (message.equals("2")) {
+                    handleLogin();
+                }
+
+                if (login.equals("1")) {
+                    handleMainMenu();
+                }
+            } while (true);
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            closeConnections();
+        }
+    }
+
+    // [Previous methods remain the same: handleMainMenu(), createReport(), 
+    // searchAndUpdateReport(), changePassword(), viewAssignedReports()]
+
+    private void closeConnections() {
+        try {
+            in.close();
+            out.close();
+            myConnection.close();
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+}

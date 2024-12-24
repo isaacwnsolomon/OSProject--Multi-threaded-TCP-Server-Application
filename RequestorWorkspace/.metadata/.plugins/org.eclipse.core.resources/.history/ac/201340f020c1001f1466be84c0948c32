@@ -1,0 +1,187 @@
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+public class Requester {
+    
+    Socket requestSocket;                   // Socket to connect to the server
+    ObjectOutputStream out;                 // Stream to send data to the server
+    ObjectInputStream in;                   // Stream to receive data from the server                     
+    Scanner input;                          // Scanner to capture user input
+    String message,login;    // Variable to hold messages exchanged
+ 	int result, menuChoice;
+    // Constructor initializing the Scanner
+    Requester() {
+        input = new Scanner(System.in);
+    }
+
+    // Main method to establish the client connection and manage communication
+    void run() {
+        try {
+            // 1. Creating a socket to connect to the server on localhost at port 2004
+            requestSocket = new Socket("127.0.0.1", 2004);
+            System.out.println("Connected to localhost in port 2004");
+
+            // 2. Initialize output and input streams for communication
+            out = new ObjectOutputStream(requestSocket.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(requestSocket.getInputStream());
+            
+            do {
+                String login = "-1";
+                do {
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+                } while (!message.equalsIgnoreCase("1") && !message.equalsIgnoreCase("2"));
+
+                if (message.equalsIgnoreCase("1")) {
+                
+                    // Name
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+
+                    // Employee ID
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+
+                    // Email
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+
+                    // Password
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+
+                    // Department Name
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+
+                    // Role
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+                    
+                    //Register success
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    
+                    //Go back to menu or exit
+                    message = (String) in.readObject();
+                    System.out.println(message);
+                    message = input.nextLine();
+                    sendMessage(message);
+                }
+                
+                else if(message.equalsIgnoreCase("2"))
+                {
+                	do {
+                	//Email
+			    	message = (String)in.readObject();
+					System.out.println(message);
+					message = input.nextLine();
+					sendMessage(message);
+					//Password
+					message = (String)in.readObject();
+					System.out.println(message);
+					message = input.nextLine();
+					sendMessage(message);
+					//Success/Fail
+					message = (String)in.readObject();
+					System.out.println(message);
+					
+					login = "1";
+                	} while(login.equalsIgnoreCase("-1"));
+                	
+                	// user now logged in
+                	
+                	if(login.equalsIgnoreCase("1")) {
+                		 // Main Menu
+                		message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                        
+                        message = (String) in.readObject();
+                        System.out.println(message);
+                        message = input.nextLine();
+                        sendMessage(message);
+                        
+                        if (message.equalsIgnoreCase("1")) {
+                            message = (String) in.readObject();
+                            System.out.println(message); // Read server's "1 for accident report or 2 for health and safety risk report" prompt
+                            message = input.nextLine();
+                            sendMessage(message);
+
+                            // Handle report creation details
+                            for (int i = 0; i < 5; i++) { // Adjust based on expected report details
+                                message = (String) in.readObject();
+                                System.out.println(message);
+                            }
+
+                            // Handle return to main menu or exit
+                            message = (String) in.readObject();
+                            System.out.println(message);
+                            message = input.nextLine();
+                            sendMessage(message);
+                        }
+
+                 
+
+                  
+                	}
+                }
+            } while (message.equalsIgnoreCase("1"));
+            
+        }catch(UnknownHostException unknownHost)
+		{
+			System.err.println("You are trying to connect to an unknown host!");
+		}
+		catch(IOException ioException){
+			ioException.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally
+		{
+			//4: Closing connection
+			try{
+				in.close();
+				out.close();
+				requestSocket.close();
+			}
+			catch(IOException ioException){
+				ioException.printStackTrace();
+			}
+		}
+	}
+	void sendMessage(String msg)
+	{
+		try{
+			out.writeObject(msg);
+			out.flush();
+			System.out.println("client>" + msg);
+		}
+		catch(IOException ioException){
+			ioException.printStackTrace();
+		}
+	}
+	public static void main(String args[])
+	{
+		Requester client = new Requester();
+		client.run();
+	}
+}

@@ -1,0 +1,262 @@
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+import java.time.LocalDate;
+
+public class ServerThread extends Thread {
+
+    private Socket myConnection;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private String message, email, password, name, deptName, role, login, reportType, incidentDate, incidentStatus, employeeID;
+    private int reportChoice, reportID = 0, loginChoice, assignedID = 0;
+    private AccountDB shared;
+    private ReportDB reportDB;
+    private LocalDate date = LocalDate.now();
+
+    public ServerThread(Socket s, AccountDB db, ReportDB reportDB) {
+        myConnection = s;
+        shared = db;
+        this.reportDB = reportDB;
+    }
+
+    public void run() {
+        try {
+            out = new ObjectOutputStream(myConnection.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(myConnection.getInputStream());
+
+            do {
+                login = "-1";
+                do {
+                    sendMessage("Enter 1. To Register 2. Login");
+                    message = (String) in.readObject();
+                    loginChoice = Integer.parseInt(message);
+                } while (loginChoice != 1 && loginChoice != 2);
+
+                if (message.equals("1")) {
+                    handleRegistration();
+                } else if (message.equals("2")) {
+                    handleLogin();
+                }
+
+                if (login.equals("1")) {
+                    handleMainMenu();
+                }
+            } while (true);
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            closeConnections();
+        }
+    }
+
+    private void sendMessage(String msg) {
+        try {
+            out.writeObject(msg);
+            out.flush();
+            System.out.println("server> " + msg);
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+
+    private void handleRegistration() throws IOException, ClassNotFoundException {
+        sendMessage("|----> Register <-----|");
+        sendMessage("Please Enter your Name");
+        name = (String) in.readObject();
+
+        sendMessage("Please Enter your Employee ID");
+        employeeID = (String) in.readObject();
+
+        sendMessage("Please Enter your Email");
+        email = (String) in.readObject();
+
+        sendMessage("Please Enter your Password");
+        password = (String) in.readObject();
+
+        sendMessage("Please Enter your Department Name");
+        deptName = (String) in.readObject();
+
+        sendMessage("Please Enter your Role");
+        role = (String) in.readObject();
+
+        if (shared.searchAccount(email, employeeID)) {
+            sendMessage("Registration failed, Email or Employee ID already exists");
+        } else {
+            shared.addAccount(name, employeeID, email, password, deptName, role);
+            sendMessage("Registration succeeded");
+        }
+    }
+
+    private void handleLogin() throws IOException, ClassNotFoundException {
+        do {
+            sendMessage("|----> Login <-----|");
+            sendMessage("Please Enter your Email");
+            email = (String) in.readObject();
+
+            sendMessage("Please Enter your Password");
+            password = (String) in.readObject();
+
+            if (shared.searchAccount(email, password)) {
+                sendMessage("Login Successful");
+                Account loggedInAccount = shared.getAccountByEmail(email); // Fetch the logged-in user's account
+                if (loggedInAccount != null) {
+                    employeeID = loggedInAccount.getEmployeeID(); // Set the employeeID
+                }
+                login = "1";
+            } else {
+                sendMessage("Login Failed, please try again");
+                login = "-1";
+            }
+        } while (login.equals("-1"));
+    }
+
+    private void handleMainMenu() throws IOException, ClassNotFoundException {
+        do {
+            sendMessage("|------- Welcome to the Main Menu -------|");
+            sendMessage("Enter \n1.To create a report\n2. View all reports\n3. Search and update a report\n-1.Exit");
+            message = (String) in.readObject();
+            reportChoice = Integer.parseInt(message);
+
+            switch (reportChoice) {
+                case 1:
+                    createReport();
+                    break;
+                case 2: 
+                	sendMessage("Retrieving accident reports...");
+		                String reports = reportDB.getAccidentReports();
+		                sendMessage(reports); // Send the formatted report details to the client
+		                break;
+                case 3:
+                	searchAndUpdateReport();
+                	break;
+                case -1:
+                    sendMessage("Exiting... Goodbye!");
+                    break;
+                default:
+                    sendMessage("Invalid choice. Please try again.");
+            }
+        } while (reportChoice != -1);
+    }
+
+    private void createReport() throws IOException, ClassNotFoundException {
+        sendMessage("Option 1: Create a report");
+        do {
+            sendMessage("Enter\n1.To select Accident Report\n2.To select Health and Safety Risk");
+            message = (String) in.readObject();
+        } while (!message.equals("1") && !message.equals("2"));
+
+        if (message.equals("1")) {
+            reportType = "Accident Report";
+        } else if (message.equals("2")) {
+            reportType = "Health and Safety Report";
+        }
+       
+
+        sendMessage("Report Status\nEnter\n1.To leave incident open\n2.To close the incident");
+        message = (String) in.readObject();
+        if (message.equals("1")) {
+            incidentStatus = "Open";
+        } else if (message.equals("2")) {
+            incidentStatus = "Closed";
+        }
+
+        int generatedID = reportDB.addReport(date, employeeID, reportType, incidentStatus, assignedID);
+        
+      
+        String dateString = date.toString();
+        reportDB.addReport(date, employeeID, reportType, incidentStatus, assignedID);
+
+        sendMessage("Report created successfully!\n" +
+                "Report Details:\n" +
+                "Type: " + reportType + "\n" +
+                "Report ID: " + generatedID + "\n" +
+                "Date: " + dateString + "\n" +
+                "Created By: " + employeeID + "\n" +
+                "Assigned To: Null\n" +
+                "Status: " + incidentStatus);
+    }
+    private void searchAndUpdateReport() throws IOException, ClassNotFoundException {
+        sendMessage("|----> Search and Update Report <-----|");
+        
+        // Prompt for report ID
+        sendMessage("Enter the Report ID to search:");
+        message = (String) in.readObject();
+        int reportID = Integer.parseInt(message);
+        
+        // Search for the report in the database
+        Report report = reportDB.getReportById(reportID);
+        if (report == null) {
+            sendMessage("No report found with ID: " + reportID);
+            return;
+        }
+
+        // Display the report details
+        sendMessage("Report Found:\n" + report.toString());
+        
+     // Assign to another employee
+        boolean validEmployeeID = false;
+        int newAssignedID = 0;
+        do {
+            sendMessage("Enter the Employee ID to assign this report to (numeric only):");
+            message = (String) in.readObject();
+            try {
+                newAssignedID = Integer.parseInt(message);
+                validEmployeeID = true;
+            } catch (NumberFormatException e) {
+                sendMessage("Invalid Employee ID. Please enter a numeric value.");
+            }
+        } while (!validEmployeeID);
+
+        // Update the report's assigned employee ID
+        report.setAssignedID(newAssignedID);
+
+
+        // Assign to another employee
+        sendMessage("Enter the Employee ID to assign this report to:");
+        message = (String) in.readObject();
+        String newAssignedID = message;
+
+        // Update the report's assigned employee ID
+        report.setAssignedID(Integer.parseInt(newAssignedID));
+
+        // Optionally update the status
+        sendMessage("Do you want to update the status? (1.yes/2.no):");
+        message = (String) in.readObject();
+        if (message.equalsIgnoreCase("1")) {
+            sendMessage("Enter new status (1.Open/2.Closed):");
+            message = (String) in.readObject();
+            if(message.equalsIgnoreCase("1"))
+            {
+            	report.setReportStatus("Open");
+            }
+            else {
+            	report.setReportStatus("Closed");
+            }
+            
+        }
+        else {
+        	report.setReportStatus(incidentStatus);
+        }
+
+        // Save the updated report
+        reportDB.updateReport(report);
+
+        // Confirm the update
+        sendMessage("Report updated successfully!\n" + report.toString());
+    }
+
+   
+
+    private void closeConnections() {
+        try {
+            in.close();
+            out.close();
+            myConnection.close();
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+    }
+}
