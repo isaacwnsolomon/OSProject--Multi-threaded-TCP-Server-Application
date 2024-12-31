@@ -3,6 +3,16 @@
 	<item key="hasShownOverlayPopupBefore" value="true"/>
 	<item key="replaceBarOpen" value="false"/>
 	<list key="searchhistory">
+		<item value="report"/>
+		<item value="getReportI"/>
+		<item value="sav"/>
+		<item value="assig"/>
+		<item value="assign"/>
+		<item value="id"/>
+		<item value="inval"/>
+		<item value="logged"/>
+		<item value="get"/>
+		<item value="reportT"/>
 		<item value="db"/>
 	</list>
 </section>

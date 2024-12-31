@@ -88,6 +88,7 @@ public class ServerThread extends Thread {
             if (shared.employeeIDExists(employeeID)) {
                 sendMessage("ERROR: This Employee ID is already registered. Please try again.");
             } else {
+            	sendMessage("Employee ID accpeted");
                 validEmployeeID = true;
             }
           // do while validEmployeeID is not true
